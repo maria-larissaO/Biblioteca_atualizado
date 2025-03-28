@@ -5,6 +5,8 @@ import com.biblioteca.biblioteca_atividade_jesiel.domain.emprestimo.EmprestimoRe
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.biblioteca.biblioteca_atividade_jesiel.service.NotificationService;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,12 +16,32 @@ public class EmprestimoController {
     @Autowired
     private EmprestimoRepository emprestimoRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
+    
     @PostMapping
-    public ResponseEntity<Emprestimo> criarEmprestimo(@RequestBody Emprestimo emprestimo) {
+    public ResponseEntity<?> criarEmprestimo(@RequestBody Emprestimo emprestimo) {
+        if (emprestimo.getLivro() == null || emprestimo.getLivro().getId() == null) {
+            return ResponseEntity.badRequest().body("Livro é obrigatório.");
+        }
+
+        if (emprestimo.getUsuario() == null || emprestimo.getUsuario().getId() == null) {
+            return ResponseEntity.badRequest().body("Usuário é obrigatório.");
+        }
+
+        if (emprestimo.getDataDevolucao() == null || emprestimo.getDataDevolucao().isBefore(LocalDate.now())) {
+            return ResponseEntity.badRequest().body("Data de devolução inválida. Deve ser uma data futura.");
+        }
+
+        emprestimo.setDataEmprestimo(LocalDate.now());
+
         Emprestimo emprestimoCriado = this.emprestimoRepository.save(emprestimo);
+        notificationService.notificarEmprestimoCriado(emprestimoCriado);
 
         return ResponseEntity.ok(emprestimoCriado);
     }
+    
 
     @GetMapping
     public ResponseEntity<List<Emprestimo>> listarEmprestimos() {
@@ -38,6 +60,13 @@ public class EmprestimoController {
 
         return ResponseEntity.ok(emprestimo);
     }
+
+    //@GetMapping("/usuario/{usuarioId}")
+    //public ResponseEntity<List<Emprestimo>> listarEmprestimosPorUsuario(@PathVariable UUID usuarioId) {
+     //   List<Emprestimo> emprestimos = this.emprestimoRepository.findByUsuarioId(usuarioId);
+
+       // return ResponseEntity.ok(emprestimos);
+    //}
 
     @PutMapping("/{id}")
     public ResponseEntity<Emprestimo> atualizarEmprestimo(@PathVariable UUID id, @RequestBody Emprestimo emprestimoAtualizado) {
@@ -70,3 +99,12 @@ public class EmprestimoController {
         return ResponseEntity.ok("Empréstimo deletado com sucesso");
     }
 }
+
+/*
+ * - **Criar um empréstimo** → `POST /emprestimos`
+- **Listar todos os empréstimos** → `GET /emprestimos`
+- **Buscar empréstimo por ID** → `GET /emprestimos/{id}`
+- **Listar empréstimos de um usuário específico** → `GET /emprestimos/usuario/{usuarioId}`
+- **Atualizar empréstimo** → `PUT /emprestimos/{id}`
+- **Deletar empréstimo** → `DELETE /emprestimos/{id}`
+ */

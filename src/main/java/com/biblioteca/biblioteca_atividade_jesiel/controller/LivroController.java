@@ -39,6 +39,10 @@ public class LivroController {
         return ResponseEntity.ok(livro);
     }
 
+    //@GetMapping("/disponiveis")
+    //@GetMapping("/indisponiveis")
+    
+
     @PutMapping("/{id}")
     public ResponseEntity<Livro> atualizarLivro(@PathVariable UUID id, @RequestBody Livro livroAtualizado) {
         Livro livro = this.livroRepository.findById(id).orElse(null);
@@ -69,3 +73,13 @@ public class LivroController {
         return ResponseEntity.ok("Livro deletado com sucesso");
     }
 }
+
+/*
+ * - **Criar um livro** → `POST /livros`
+- **Listar todos os livros** → `GET /livros`
+- **Buscar livro por ID** → `GET /livros/{id}`
+- **Listar apenas livros disponíveis** → `GET /livros/disponiveis`
+- **Listar apenas livros indisponíveis** → `GET /livros/indisponiveis`
+- **Atualizar livro** → `PUT /livros/{id}`
+- **Deletar livro** → `DELETE /livros/{id}`
+ */
